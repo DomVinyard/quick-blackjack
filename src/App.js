@@ -94,6 +94,14 @@ const Game = () => {
   }
 
   // render
+  const cardStyle = {
+    height: 170,
+    display: "inline-block",
+    width: 120,
+    textAlign: "center",
+    fontSize: "2rem",
+    paddingTop: 70
+  }
   return (
     <Container>
       <h1 style={{ float: "right" }}>£{cash}</h1>
@@ -128,23 +136,21 @@ const Game = () => {
                 >
                   <h3>{name}</h3>
                   {hands[name].map(card => (
-                    <Card
-                      style={{
-                        height: 100,
-                        display: "inline-block",
-                        width: 64
-                      }}
-                    >
-                      {card}
-                    </Card>
+                    <Card style={cardStyle}>{card}</Card>
                   ))}
                   <span style={{ fontSize: "4rem", verticalAlign: "middle" }}>
-                    {scores[name]}
                     {!winner && name === "player" && (
-                      <Button disabled={winner} onClick={() => hitMe()}>
-                        hit me
-                      </Button>
+                      <Card style={cardStyle}>
+                        <Button
+                          style={{ width: 90 }}
+                          disabled={winner}
+                          onClick={() => hitMe()}
+                        >
+                          hit me
+                        </Button>
+                      </Card>
                     )}
+                    <span>{scores[name]}</span>
                     {getScore(hands[name]) > 21 && " | BUST | "}
                     {winner === "player" &&
                       (name === "player" && ` | WIN £${stake * 2}🎉`)}
@@ -170,7 +176,7 @@ const Game = () => {
 
 const suits = ["♠", "♥", "♦", "♣"]
 const values = [
-  "ace",
+  "A",
   "2",
   "3",
   "4",
@@ -180,9 +186,9 @@ const values = [
   "8",
   "9",
   "10",
-  "jack",
-  "queen",
-  "king"
+  "J",
+  "Q",
+  "K"
 ]
 
 export default Game

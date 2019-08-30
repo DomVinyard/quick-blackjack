@@ -136,7 +136,14 @@ const Game = () => {
                 >
                   <h3>{name}</h3>
                   {hands[name].map(card => (
-                    <Card style={cardStyle}>{card}</Card>
+                    <Card
+                      style={{
+                        ...cardStyle,
+                        color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
+                      }}
+                    >
+                      {card}
+                    </Card>
                   ))}
                   <span style={{ fontSize: "4rem", verticalAlign: "middle" }}>
                     {!winner && name === "player" && (
@@ -151,7 +158,7 @@ const Game = () => {
                       </Card>
                     )}
                     <span>{scores[name]}</span>
-                    {getScore(hands[name]) > 21 && " | BUST | "}
+                    {getScore(hands[name]) > 21 && " | BUST "}
                     {winner === "player" &&
                       (name === "player" && ` | WIN £${stake * 2}🎉`)}
                     {name === "player" &&

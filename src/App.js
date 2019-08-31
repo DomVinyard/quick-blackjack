@@ -1,16 +1,27 @@
 // quick-blackjack
 import React, { useState } from "react"
-import {
-  Header,
-  Button,
-  Card,
-  Segment,
-  Divider,
-  Container
-} from "semantic-ui-react"
+import { Header, Button, Card, Divider, Container } from "semantic-ui-react"
 import "semantic-ui-css/semantic.min.css"
+
+const suits = ["♠", "♥", "♦", "♣"]
+const values = [
+  "A",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "J",
+  "Q",
+  "K"
+]
 const bets = [10, 20, 50]
 const dealerStickOn = 17
+
 const Game = () => {
   const [cash, setCash] = useState(100)
   const [stake, setStake] = useState(0)
@@ -32,6 +43,7 @@ const Game = () => {
   }
 
   // look for a winner
+  // TODO: RECONSIDER
   const hitMe = () => {
     const current = hands
     const [card1, card2, ...others] = deck
@@ -95,12 +107,13 @@ const Game = () => {
 
   // render
   const cardStyle = {
-    height: 170,
+    height: 150,
     display: "inline-block",
-    width: 120,
+    width: 110,
     textAlign: "center",
     fontSize: "2rem",
-    paddingTop: 70
+    paddingTop: 64,
+    margin: "0 0.5rem 0 0"
   }
   return (
     <Container>
@@ -114,10 +127,8 @@ const Game = () => {
       {!gameActive && (
         <h1
           style={{ fontSize: "8rem", marginLeft: "3rem", marginTop: "-1rem" }}
-        >
-          {" "}
-          ↖quick-blackjack
-        </h1>
+          children="↖quick-blackjack"
+        />
       )}
       {gameActive && (
         <div>
@@ -128,74 +139,49 @@ const Game = () => {
               <Button onClick={endGame}>play again</Button>
             )}
           </Header>
-          <Segment>
-            {["player", "dealer"].map(name => (
-              <React.Fragment>
-                <div
-                  style={{ opacity: !winner ? 1 : name === winner ? 1 : 0.2 }}
-                >
-                  <h3>{name}</h3>
-                  {hands[name].map(card => (
-                    <Card
-                      style={{
-                        ...cardStyle,
-                        color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
-                      }}
-                    >
-                      {card}
-                    </Card>
-                  ))}
-                  <span style={{ fontSize: "4rem", verticalAlign: "middle" }}>
-                    {!winner && name === "player" && (
-                      <Card style={cardStyle}>
-                        <Button
-                          style={{ width: 90 }}
-                          disabled={winner}
-                          onClick={() => hitMe()}
-                        >
-                          hit me
-                        </Button>
-                      </Card>
-                    )}
-                    <span>{scores[name]}</span>
-                    {getScore(hands[name]) > 21 && " | BUST "}
-                    {winner === "player" &&
-                      (name === "player" && ` | WIN £${stake * 2}🎉`)}
-                    {name === "player" &&
-                      winner === "dealer" &&
-                      ` | LOSE £${stake}`}
-                    {name === "dealer" &&
-                      !winner &&
-                      getScore(hands.dealer) >= dealerStickOn &&
-                      getScore(hands.dealer) < 21 &&
-                      " | STICK"}
-                  </span>
-                </div>
-                <Divider />
-              </React.Fragment>
-            ))}
-          </Segment>
+          {["player", "dealer"].map(name => (
+            <React.Fragment>
+              <div style={{ opacity: !winner ? 1 : name === winner ? 1 : 0.2 }}>
+                <h3>{name}</h3>
+                {hands[name].map(card => (
+                  <Card
+                    style={{
+                      ...cardStyle,
+                      color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
+                    }}
+                    childen={card}
+                  />
+                ))}
+                <span style={{ fontSize: "3rem", verticalAlign: "middle" }}>
+                  {!winner && name === "player" && (
+                    <Button
+                      style={{ width: 90 }}
+                      disabled={winner}
+                      onClick={() => hitMe()}
+                      children="hit me"
+                    />
+                  )}
+                  <span>{scores[name]}</span>
+                  {getScore(hands[name]) > 21 && " | BUST "}
+                  {winner === "player" &&
+                    (name === "player" && ` | WIN £${stake * 2}🎉`)}
+                  {name === "player" &&
+                    winner === "dealer" &&
+                    ` | LOSE £${stake}`}
+                  {name === "dealer" &&
+                    !winner &&
+                    getScore(hands.dealer) >= dealerStickOn &&
+                    getScore(hands.dealer) < 21 &&
+                    " | STICK"}
+                </span>
+              </div>
+              <Divider />
+            </React.Fragment>
+          ))}
         </div>
       )}
     </Container>
   )
 }
-
-const suits = ["♠", "♥", "♦", "♣"]
-const values = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K"
-]
 
 export default Game

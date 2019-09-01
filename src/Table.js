@@ -112,10 +112,11 @@ const Table = ({
                   textAlign: "center",
                   fontSize: "1rem",
                   margin: "0 0.2rem 0 0.1rem",
-                  border: "1px solid #555",
+                  border: "1px solid rgb(199, 199, 199)",
                   borderRadius: "4px",
                   lineHeight: "90px",
-                  background: name === "player" ? "white" : "#d4d4d4",
+                  background:
+                    name === "player" ? "white" : "rgb(228, 226, 226)",
                   color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
                 }}
                 children={card}

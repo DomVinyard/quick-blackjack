@@ -12,7 +12,9 @@ const Header = ({
   canStick
 }) => {
   return (
-    <div style={{ textAlign: "center", marginTop: 92 }}>
+    <div
+      style={{ textAlign: "center", paddingTop: "50vh", marginTop: "-240px" }}
+    >
       <h1>£{cash}</h1>
       <div>
         {cash > 0 &&

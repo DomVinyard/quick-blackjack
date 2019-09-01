@@ -223,7 +223,7 @@ const Game = () => {
             >
               <h3 style={{ marginBottom: 8 }}>
                 <span>
-                  <span>{scores[name]}</span>
+                  <span>{scores[name] > 0 ? scores[name] : ""}</span>
                   {name === "dealer" && dealerStick && !playerStick && "🔒"}
                   {name === "player" && playerStick && "🔒"}
                 </span>
@@ -236,7 +236,7 @@ const Game = () => {
                     onClick={() => {
                       if (gameActive && card[1] === "Q") {
                         setHands({ player: [], dealer: [] })
-
+                        setCash(cash + bets[0])
                         addToast(
                           <div>
                             <div>+£{bets[0]}</div>

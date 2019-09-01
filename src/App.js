@@ -1,43 +1,28 @@
 // quick-blackjack
 import React, { useState, useEffect } from "react"
-import { Label } from "semantic-ui-react"
 import { useToasts } from "react-toast-notifications"
 import useHotState from "./useHotState"
-// import "semantic-ui-css/semantic.min.css"
-
-const suits = ["♠", "♥", "♦", "♣"]
-const values = [
-  "A",
-  "2",
-  "3",
-  "4",
-  "5",
-  "6",
-  "7",
-  "8",
-  "9",
-  "10",
-  "J",
-  "Q",
-  "K"
-]
-const dealerStickOn = 17
+import { suits, values } from "./data"
 
 const Game = () => {
-  const [stake, setStake] = useState(0)
-  const [deck, setDeck] = useState([])
-  const [playerStick, setPlayerStick] = useState(false)
-  const [dealerStick, setDealerStick] = useState(false)
-  const [winner, setWinner] = useState()
-  const [hands, setHands] = useState({ player: [], dealer: [] })
   const { addToast } = useToasts()
 
-  // create a concept of cash
+  // the winner
+  const [winner, setWinner] = useState()
+  const [winReason, setWinReason] = useState()
+
+  // sticking
+  const [playerStick, setPlayerStick] = useState(false)
+  const [dealerStick, setDealerStick] = useState(false)
+  const dealerStickOn = 17
+
+  // create a concept of cash and a betting stake
   const [cash, setCash] = useState(100)
+  const [stake, setStake] = useState(0)
 
   // when cash changes, different bets become available
   const bets = useHotState({
-    watch: cash,
+    watch: [cash],
     update: () =>
       cash < 200
         ? [10, 20, 50]
@@ -54,12 +39,17 @@ const Game = () => {
     setTimeout(() => {
       if (gameActive === "true") {
         // game just started
+        hitMe()
       } else {
         // game just ended
+        //
       }
-      return gameActive && hitMe()
     }, 300)
   }, [gameActive])
+
+  // deck and hands
+  const [deck, setDeck] = useState([])
+  const [hands, setHands] = useState({ player: [], dealer: [] })
 
   // shuffle the deck before every new game
   const newGame = bet => {
@@ -80,32 +70,45 @@ const Game = () => {
   }
 
   const wonBy = async (name, reason) => {
-    setGameActive(false)
     setWinner(name)
-    if (name === "player") await setCash(cash + stake) // payout from previous
-    if (name === "dealer") await setCash(cash - stake) // payout from previous
-    addToast(
-      <div>
-        <div>{`${name === "player" ? "+" : "-"}£${stake}`}</div>
-        {reason && <div>{reason}</div>}
-      </div>,
-      {
-        appearance: name === "player" ? "success" : "error",
-        autoDismiss: true
-      }
-    )
+    setWinReason(reason)
   }
 
-  const draw = () => {
+  // every time a winner is set, end the game and pay out
+  useEffect(() => {
+    if (!winner || !gameActive) return
     setGameActive(false)
-    setWinner("none")
-    if (gameActive) {
+    if (winner === "player") setCash(cash + stake) // payout from previous
+    if (winner === "dealer") setCash(cash - stake) // payout from previous
+    if (winner === "none") {
       addToast("draw", {
         appearance: "info",
         autoDismiss: true
       })
+    } else {
+      addToast(
+        <div>
+          <div>{`${winner === "player" ? "+" : "-"}£${stake}`}</div>
+          {winReason && <div>{winReason}</div>}
+        </div>,
+        {
+          appearance: winner === "player" ? "success" : "error",
+          autoDismiss: true
+        }
+      )
     }
-  }
+  }, [winner])
+
+  // const draw = () => {
+  //   setGameActive(false)
+  //   setWinner("none")
+  //   if (gameActive) {
+  //     addToast("draw", {
+  //       appearance: "info",
+  //       autoDismiss: true
+  //     })
+  //   }
+  // }
 
   const hitMe = () => {
     const [p, d, ...others] = deck
@@ -128,7 +131,7 @@ const Game = () => {
       getScore(newPlayerHand) === getScore(newDealerHand)
     ) {
       setHands({ player: newPlayerHand, dealer: newDealerHand })
-      return draw()
+      return setWinner("none")
     }
     console.log({ newPlayerHand, newDealerHand })
     setTimeout(
@@ -261,7 +264,12 @@ const Game = () => {
                   : { width: 420, margin: "0.5rem auto" }
               }
             >
-              <h3 style={{ margin: 8 }}>
+              <h3
+                style={{
+                  margin: "2px 0 8px 0",
+                  color: name === "dealer" ? "#737373" : "#222"
+                }}
+              >
                 <span>
                   <span style={{ fontWeight: "normal", opacity: 0.5 }}></span>
                   <span>{scores[name] > 0 ? scores[name] : ""}</span>

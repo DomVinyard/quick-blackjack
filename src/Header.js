@@ -13,7 +13,7 @@ const Header = ({
 }) => {
   return (
     <div
-      style={{ textAlign: "center", paddingTop: "50vh", marginTop: "-240px" }}
+      style={{ textAlign: "center", paddingTop: "50vh", marginTop: "-250px" }}
     >
       <h1>£{cash}</h1>
       <div>

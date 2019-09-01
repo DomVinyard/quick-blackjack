@@ -75,6 +75,7 @@ const Table = ({
                           autoDismiss: true
                         }
                       )
+                      setGameActive(false)
                     } else {
                       setCash(cash - 1)
                       addToast(

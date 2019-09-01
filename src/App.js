@@ -24,6 +24,7 @@ const Game = () => {
   const [cash, setCash] = useState(100)
   const [stake, setStake] = useState(0)
   const [deck, setDeck] = useState([])
+  const [dealerStick, setDealerStick] = useState(false)
   const [winner, setWinner] = useState()
   const [hands, setHands] = useState({ player: [], dealer: [] })
   const [gameActive, setGameActive] = useState(false)
@@ -46,7 +47,7 @@ const Game = () => {
     setWinner(name)
     if (name === "player") await setCash(cash + stake) // payout from previous
     if (name === "dealer") await setCash(cash - stake) // payout from previous
-    setStake(0)
+    setDealerStick(false)
   }
 
   const hitMe = () => {
@@ -57,10 +58,22 @@ const Game = () => {
       setHands({ player: newPlayerHand, dealer: hands.dealer })
       return wonBy("dealer") // player went bust
     }
-    const newDealerHand = [...hands.dealer, d]
-    setHands({ player: newPlayerHand, dealer: newDealerHand })
+    const newDealerHand = dealerStick ? hands.dealer : [...hands.dealer, d]
+    setHands({
+      player: newPlayerHand,
+      dealer: newDealerHand
+    })
     if (getScore(newDealerHand) > 21) {
       return wonBy("player") // dealer went bust
+    }
+    if (getScore(newDealerHand >= dealerStickOn)) {
+      setDealerStick(true)
+    }
+    if (dealerStick && getScore(newPlayerHand) > getScore(newDealerHand)) {
+      return wonBy("player") // dealer sticks, player is higher
+    }
+    if (newPlayerHand.length >= 5) {
+      return wonBy("player") // player gets 5 cards
     }
   }
 
@@ -69,7 +82,7 @@ const Game = () => {
       <h1 style={{ textAlign: "center" }}>
         £{cash}
         <div>
-          {(!gameActive || winner) &&
+          {!gameActive &&
             bets.map(bet => (
               <button disabled={cash < bet} onClick={() => newGame(bet)}>
                 {`bet £${bet}`}

@@ -25,6 +25,7 @@ const Game = () => {
   const [cash, setCash] = useLocalStorage("cash", 100)
   // const [cash, setCash] = useState(100)
   const [stake, setStake] = useState(0)
+  const [betCount, setBetCount] = useLocalStorage("bet-count", 0)
 
   // when cash changes, different bets become available
   const bets = useHotState({
@@ -59,6 +60,7 @@ const Game = () => {
     setHands({ player: [p], dealer: [d] })
     setDeck(rest)
     setGameActive(true)
+    setBetCount(betCount + 1)
   }
   const reset = () => {
     setCash(100)
@@ -213,6 +215,7 @@ const Game = () => {
         bets={bets}
         addToast={addToast}
         setGameActive={setGameActive}
+        betCount={betCount}
       />
     </div>
   )

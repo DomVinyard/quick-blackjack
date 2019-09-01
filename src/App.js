@@ -21,7 +21,6 @@ const values = [
 const dealerStickOn = 17
 
 const Game = () => {
-  const [cash, setCash] = useState(100)
   const [stake, setStake] = useState(0)
   const [deck, setDeck] = useState([])
   const [playerStick, setPlayerStick] = useState(false)
@@ -29,8 +28,25 @@ const Game = () => {
   const [winner, setWinner] = useState()
   const [hands, setHands] = useState({ player: [], dealer: [] })
   const [gameActive, setGameActive] = useState(false)
-  const [bets, setBets] = useState([10, 20, 50])
   const { addToast } = useToasts()
+
+  const [playerHand, setPlayerHand] = useState([])
+  const [dealerHand, setDealerHand] = useState([])
+
+  // create a concept of cash
+  const [cash, setCash] = useState(100)
+
+  // when cash changes, different bets become available
+  const [bets, setBets] = useState([10, 20, 50])
+  useEffect(() => {
+    setBets(
+      cash < 200
+        ? [10, 20, 50]
+        : cash < 1000
+        ? [50, 100, 250]
+        : [250, 500, 1000]
+    )
+  }, [cash])
 
   // shuffle the deck before every new game
   const newGame = bet => {
@@ -60,13 +76,6 @@ const Game = () => {
     setWinner(name)
     if (name === "player") await setCash(cash + stake) // payout from previous
     if (name === "dealer") await setCash(cash - stake) // payout from previous
-    setBets(
-      cash < 200
-        ? [10, 20, 50]
-        : cash < 1000
-        ? [50, 100, 250]
-        : [250, 500, 1000]
-    )
     addToast(
       <div>
         <div>{`${name === "player" ? "+" : "-"}£${stake}`}</div>
@@ -107,7 +116,7 @@ const Game = () => {
     const newDealerHand = dealerStick ? hands.dealer : [...hands.dealer, d]
 
     if (
-      (playerStick || dealerStick) &&
+      getScore(newPlayerHand) > 16 &&
       getScore(newPlayerHand) === getScore(newDealerHand)
     ) {
       setHands({ player: newPlayerHand, dealer: newDealerHand })

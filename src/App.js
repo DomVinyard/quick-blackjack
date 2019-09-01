@@ -47,6 +47,7 @@ const Game = () => {
   }
   const reset = () => {
     setCash(100)
+    newGame(10)
   }
   // start a game on on launch
   useEffect(() => newGame(10), [])
@@ -81,11 +82,13 @@ const Game = () => {
   }
 
   const draw = () => {
-    setGameActive(false)
-    addToast("draw", {
-      appearance: "info",
-      autoDismiss: true
-    })
+    if (gameActive) {
+      addToast("draw", {
+        appearance: "info",
+        autoDismiss: true
+      })
+      setGameActive(false)
+    }
   }
 
   const hitMe = () => {
@@ -95,8 +98,11 @@ const Game = () => {
       setHands({ player: newPlayerHand, dealer: hands.dealer })
       return wonBy("dealer", "you went bust")
     }
-    console.log(getScore(hands.dealer), dealerStickOn, playerStick)
-    if (getScore(hands.dealer) >= dealerStickOn && !playerStick) {
+    if (
+      getScore(hands.dealer) >= dealerStickOn &&
+      !playerStick &&
+      getScore(hands.dealer) < getScore(newPlayerHand)
+    ) {
       setDealerStick(true)
     }
     const newDealerHand = dealerStick ? hands.dealer : [...hands.dealer, d]
@@ -186,30 +192,33 @@ const Game = () => {
   // Title and actions
   const Header = () => {
     return (
-      <h1 style={{ textAlign: "center", marginTop: 72 }}>
-        £{cash}
-        <div>
-          {cash > 0 &&
-            !gameActive &&
-            bets.map(bet => (
-              <button disabled={cash < bet} onClick={() => newGame(bet)}>
-                {`bet £${bet}`}
-              </button>
-            ))}
-          {cash <= 0 && <button onClick={reset}>new game</button>}
-          {gameActive && (
-            <div>
-              <button
-                style={{ width: 90 }}
-                disabled={winner}
-                onClick={() => hitMe()}
-                children="hit me"
-              />
-              <button disabled={!canStick} onClick={stick} children="stick" />
-            </div>
-          )}
-        </div>
-      </h1>
+      <div style={{ textAlign: "center", marginTop: 72 }}>
+        <h1>
+          £{cash}
+          <div>
+            {cash > 0 &&
+              !gameActive &&
+              bets.map(bet => (
+                <button disabled={cash < bet} onClick={() => newGame(bet)}>
+                  {`bet £${bet}`}
+                </button>
+              ))}
+            {cash <= 0 && <button onClick={reset}>new game</button>}
+          </div>
+        </h1>
+        {gameActive && (
+          <div>
+            <span style={{ color: "firebrick", marginRight: 8 }}>£{stake}</span>
+            <button
+              style={{ width: 90 }}
+              disabled={winner}
+              onClick={() => hitMe()}
+              children="hit me"
+            />
+            <button disabled={!canStick} onClick={stick} children="stick" />
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -241,7 +250,7 @@ const Game = () => {
                     onClick={() => {
                       if (gameActive && card[1] === "Q") {
                         setHands({ player: [], dealer: [] })
-                        setCash(cash + bets[0])
+                        setCash((cash || 0) + bets[0])
                         addToast(
                           <div>
                             <div>+£{bets[0]}</div>
@@ -252,9 +261,7 @@ const Game = () => {
                             autoDismiss: true
                           }
                         )
-                        setTimeout(() => {
-                          newGame()
-                        }, 2000)
+                        setGameActive(false)
                       }
                     }}
                     style={{

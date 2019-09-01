@@ -80,12 +80,13 @@ const Game = () => {
   }
 
   const draw = () => {
+    setGameActive(false)
+    setWinner("none")
     if (gameActive) {
       addToast("draw", {
         appearance: "info",
         autoDismiss: true
       })
-      setGameActive(false)
     }
   }
 
@@ -235,6 +236,9 @@ const Game = () => {
             >
               <h3 style={{ marginBottom: 8 }}>
                 <span>
+                  <span style={{ fontWeight: "normal", opacity: 0.5 }}>
+                    {name === "dealer" && scores[name] > 0 ? `${name}: ` : ""}
+                  </span>
                   <span>{scores[name] > 0 ? scores[name] : ""}</span>
                   {name === "dealer" && dealerStick && !playerStick && "🔒"}
                   {name === "player" && playerStick && "🔒"}

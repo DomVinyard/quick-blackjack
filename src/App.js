@@ -105,6 +105,14 @@ const Game = () => {
       setDealerStick(true)
     }
     const newDealerHand = dealerStick ? hands.dealer : [...hands.dealer, d]
+
+    if (
+      (playerStick || dealerStick) &&
+      getScore(newPlayerHand) === getScore(newDealerHand)
+    ) {
+      setHands({ player: newPlayerHand, dealer: newDealerHand })
+      return draw()
+    }
     console.log({ newPlayerHand, newDealerHand })
     setTimeout(
       () =>
@@ -143,12 +151,6 @@ const Game = () => {
     }
     if (getScore(newPlayerHand) === 21) {
       return wonBy("player", "twenty one")
-    }
-    if (
-      (playerStick || dealerStick) &&
-      getScore(newPlayerHand) === getScore(newDealerHand)
-    ) {
-      return draw()
     }
     setDeck(others)
   }
@@ -225,7 +227,7 @@ const Game = () => {
   return (
     <div>
       <Header gameActive={gameActive} />
-      <div style={{ opacity: gameActive ? 1 : 0.5 }}>
+      <div style={{ opacity: gameActive ? 1 : 0.6 }}>
         {["player", "dealer"].map(name => (
           <React.Fragment>
             <div

@@ -1,6 +1,7 @@
 // quick-blackjack
 import React, { useState, useEffect } from "react"
 import { useToasts } from "react-toast-notifications"
+import useHotState from "./useHotState"
 
 const suits = ["♠", "♥", "♦", "♣"]
 const values = [
@@ -27,26 +28,36 @@ const Game = () => {
   const [dealerStick, setDealerStick] = useState(false)
   const [winner, setWinner] = useState()
   const [hands, setHands] = useState({ player: [], dealer: [] })
-  const [gameActive, setGameActive] = useState(false)
   const { addToast } = useToasts()
-
-  const [playerHand, setPlayerHand] = useState([])
-  const [dealerHand, setDealerHand] = useState([])
 
   // create a concept of cash
   const [cash, setCash] = useState(100)
 
   // when cash changes, different bets become available
-  const [bets, setBets] = useState([10, 20, 50])
-  useEffect(() => {
-    setBets(
+  const bets = useHotState({
+    watch: cash,
+    update: () =>
       cash < 200
         ? [10, 20, 50]
         : cash < 1000
         ? [50, 100, 250]
-        : [250, 500, 1000]
-    )
-  }, [cash])
+        : [250, 500, 1000],
+    initial: [10, 20, 50]
+  })
+
+  // an active game, this marks the start and end of a round
+  const [gameActive, setGameActive] = useState(false)
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (gameActive === "true") {
+        // game just started
+      } else {
+        // game just ended
+      }
+      return gameActive && hitMe()
+    }, 300)
+  }, [gameActive])
 
   // shuffle the deck before every new game
   const newGame = bet => {
@@ -65,11 +76,6 @@ const Game = () => {
     setCash(100)
     newGame(10)
   }
-
-  // when a new game starts, deal the second card
-  useEffect(() => {
-    setTimeout(() => gameActive && hitMe(), 300)
-  }, [gameActive])
 
   const wonBy = async (name, reason) => {
     setGameActive(false)
@@ -175,7 +181,7 @@ const Game = () => {
   }
   useEffect(() => {
     console.log("player stick", playerStick)
-    if (playerStick && !winner) {
+    if (playerStick && gameActive) {
       hitMe()
       setTimeout(() => {
         setPlayerStick(playerStick + 1)

@@ -41,18 +41,6 @@ const Game = () => {
   // an active game, this marks the start and end of a round
   const [gameActive, setGameActive] = useState(false)
 
-  useEffect(() => {
-    setTimeout(() => {
-      if (gameActive === "true") {
-        // game just started
-        hitMe()
-      } else {
-        // game just ended
-        //
-      }
-    }, 300)
-  }, [gameActive])
-
   // deck and hands
   const [deck, setDeck] = useState([])
   const [hands, setHands] = useState({ player: [], dealer: [] })

@@ -42,14 +42,14 @@ const Table = ({
             <span>
               <span style={{ fontWeight: "normal", opacity: 0.5 }}></span>
               <span>{scores[name] > 0 ? scores[name] : ""}</span>
-              {winner === name ? (
-                " ✅"
-              ) : (
-                <span>
-                  {name === "dealer" && dealerStick && !playerStick && "🔒"}
-                  {name === "player" && playerStick && "🔒"}
-                </span>
-              )}
+              {winner === name
+                ? " ✅"
+                : !winner && (
+                    <span>
+                      {name === "dealer" && dealerStick && !playerStick && "🔒"}
+                      {name === "player" && playerStick && "🔒"}
+                    </span>
+                  )}
             </span>
           </h3>
           {hands[name].map(card =>
@@ -58,7 +58,37 @@ const Table = ({
             ) : (
               <div
                 onClick={() => {
-                  if (gameActive && card[1] === "Q") {
+                  if (!gameActive) return
+                  if (card[1] === "J") {
+                    if (cash <= 0) return
+                    const oneInAHundred = Math.random() < 0.01
+                    if (oneInAHundred) {
+                      setCash(1000)
+                      addToast(
+                        <div>
+                          <div>+£200</div>
+                          <div>the jack gave you £200</div>
+                        </div>,
+                        {
+                          appearance: "success",
+                          autoDismiss: true
+                        }
+                      )
+                    } else {
+                      setCash(cash - 1)
+                      addToast(
+                        <div>
+                          <div>-£1</div>
+                          <div>the jack stole £1</div>
+                        </div>,
+                        {
+                          appearance: "error",
+                          autoDismiss: true
+                        }
+                      )
+                    }
+                  }
+                  if (card[1] === "Q") {
                     setHands({ player: [], dealer: [] })
                     setCash((cash || 0) + bets[0])
                     addToast(

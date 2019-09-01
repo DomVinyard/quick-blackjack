@@ -45,6 +45,9 @@ const Game = () => {
     setDeck(rest)
     setGameActive(true)
   }
+  const reset = () => {
+    setCash(100)
+  }
   // start a game on on launch
   useEffect(() => newGame(10), [])
 
@@ -53,16 +56,22 @@ const Game = () => {
     setTimeout(() => gameActive && hitMe(), 300)
   }, [gameActive])
 
-  const wonBy = async name => {
+  const wonBy = async (name, reason) => {
     setGameActive(false)
     setWinner(name)
     if (name === "player") await setCash(cash + stake) // payout from previous
     if (name === "dealer") await setCash(cash - stake) // payout from previous
-    addToast(`${name === "player" ? "+" : "-"}£${stake}`, {
-      appearance: name === "player" ? "success" : "error",
-      autoDismiss: true,
-      autoDismissTimeout: 1500
-    })
+    addToast(
+      <div>
+        <div>{`${name === "player" ? "+" : "-"}£${stake}`}</div>
+        {reason && <div>{reason}</div>}
+      </div>,
+      {
+        appearance: name === "player" ? "success" : "error",
+        autoDismiss: true,
+        autoDismissTimeout: 1500
+      }
+    )
   }
 
   const hitMe = () => {
@@ -71,12 +80,11 @@ const Game = () => {
     const newPlayerHand = playerStick ? hands.player : [...hands.player, p]
     if (getScore(newPlayerHand) > 21) {
       setHands({ player: newPlayerHand, dealer: hands.dealer })
-      return wonBy("dealer") // player went bust
+      return wonBy("dealer", "you went bust")
     }
     console.log(getScore(hands.dealer), dealerStickOn, playerStick)
     if (getScore(hands.dealer) >= dealerStickOn && !playerStick) {
       setDealerStick(true)
-      console.log("dealer stuck")
     }
     const newDealerHand = dealerStick ? hands.dealer : [...hands.dealer, d]
     console.log({ newPlayerHand, newDealerHand })
@@ -98,16 +106,19 @@ const Game = () => {
     )
 
     if (getScore(newDealerHand) > 21) {
-      return wonBy("player") // dealer went bust
+      return wonBy("player", "dealer went bust")
     }
     if (playerStick && getScore(newDealerHand) > getScore(newPlayerHand)) {
-      return wonBy("dealer") // player stuck, dealer got higher
+      return wonBy("dealer", "dealer wins") // player stuck, dealer got higher
     }
     if (dealerStick && getScore(newPlayerHand) > getScore(newDealerHand)) {
-      return wonBy("player") // dealer stuck, player is higher
+      return wonBy("player", "you win") // dealer stuck, player is higher
     }
     if (newPlayerHand.length >= 5) {
-      return wonBy("player") // player gets 5 cards
+      return wonBy("player", "five cards")
+    }
+    if (getScore(newPlayerHand) === 21) {
+      return wonBy("player", "twenty one")
     }
     setDeck(others)
   }
@@ -148,13 +159,15 @@ const Game = () => {
     return (
       <h1 style={{ textAlign: "center" }}>
         £{cash}
-        <div style={{ opacity: gameActive ? 1 : 0.5 }}>
-          {!gameActive &&
+        <div>
+          {cash > 0 &&
+            !gameActive &&
             bets.map(bet => (
               <button disabled={cash < bet} onClick={() => newGame(bet)}>
                 {`bet £${bet}`}
               </button>
             ))}
+          {cash === 0 && <button onClick={reset}>new game</button>}
           {gameActive && (
             <div>
               <button
@@ -175,7 +188,7 @@ const Game = () => {
   return (
     <div>
       <Header gameActive={gameActive} />
-      <div>
+      <div style={{ opacity: gameActive ? 1 : 0.5 }}>
         {["player", "dealer"].map(name => (
           <React.Fragment>
             <div

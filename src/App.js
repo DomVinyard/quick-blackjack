@@ -1,7 +1,9 @@
 // quick-blackjack
 import React, { useState, useEffect } from "react"
+import { Label } from "semantic-ui-react"
 import { useToasts } from "react-toast-notifications"
 import useHotState from "./useHotState"
+// import "semantic-ui-css/semantic.min.css"
 
 const suits = ["♠", "♥", "♦", "♣"]
 const values = [
@@ -208,20 +210,18 @@ const Game = () => {
   // Title and actions
   const Header = () => {
     return (
-      <div style={{ textAlign: "center", marginTop: 72 }}>
-        <h1>
-          £{cash}
-          <div>
-            {cash > 0 &&
-              !gameActive &&
-              bets.map(bet => (
-                <button disabled={cash < bet} onClick={() => newGame(bet)}>
-                  {`bet £${bet}`}
-                </button>
-              ))}
-            {cash <= 0 && <button onClick={reset}>new game</button>}
-          </div>
-        </h1>
+      <div style={{ textAlign: "center", marginTop: 92 }}>
+        <h1>£{cash}</h1>
+        <div>
+          {cash > 0 &&
+            !gameActive &&
+            bets.map(bet => (
+              <button disabled={cash < bet} onClick={() => newGame(bet)}>
+                {`bet £${bet}`}
+              </button>
+            ))}
+          {cash <= 0 && <button onClick={reset}>new game</button>}
+        </div>
         {gameActive && (
           <div>
             <span style={{ color: "firebrick", marginRight: 8 }}>£{stake}</span>
@@ -242,23 +242,37 @@ const Game = () => {
   return (
     <div>
       <Header gameActive={gameActive} />
-      <div style={{ opacity: gameActive ? 1 : 0.6 }}>
+      <div style={{ marginTop: "2rem" }}>
         {["player", "dealer"].map(name => (
           <React.Fragment>
             <div
-              style={{
-                textAlign: "center",
-                opacity: !winner ? 1 : name === winner ? 1 : 0.2
-              }}
+              style={
+                hands.player.length
+                  ? {
+                      textAlign: "center",
+                      opacity: !winner ? 1 : name === winner ? 1 : 0.5,
+                      width: 420,
+                      background:
+                        getScore(hands[name]) > 21 ? "#fbc0c0" : "#f5f3f3",
+                      margin: "0.5rem auto",
+                      padding: "0.5rem 0 1rem 0",
+                      borderRadius: 16
+                    }
+                  : { width: 420, margin: "0.5rem auto" }
+              }
             >
-              <h3 style={{ marginBottom: 8 }}>
+              <h3 style={{ margin: 8 }}>
                 <span>
-                  <span style={{ fontWeight: "normal", opacity: 0.5 }}>
-                    {name === "dealer" && scores[name] > 0 ? `${name}: ` : ""}
-                  </span>
+                  <span style={{ fontWeight: "normal", opacity: 0.5 }}></span>
                   <span>{scores[name] > 0 ? scores[name] : ""}</span>
-                  {name === "dealer" && dealerStick && !playerStick && "🔒"}
-                  {name === "player" && playerStick && "🔒"}
+                  {winner === name ? (
+                    " ✅"
+                  ) : (
+                    <span>
+                      {name === "dealer" && dealerStick && !playerStick && "🔒"}
+                      {name === "player" && playerStick && "🔒"}
+                    </span>
+                  )}
                 </span>
               </h3>
               {hands[name].map(card =>
@@ -289,8 +303,8 @@ const Game = () => {
                       width: 60,
                       textAlign: "center",
                       fontSize: "1rem",
-                      margin: "0 0.5rem 0 0",
-                      border: "1px solid black",
+                      margin: "0 0.2rem 0 0.2rem",
+                      border: "1px solid #555",
                       borderRadius: "4px",
                       lineHeight: "90px",
                       background: name === "player" ? "white" : "#d4d4d4",

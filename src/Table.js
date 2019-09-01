@@ -24,6 +24,7 @@ const Table = ({
                   textAlign: "center",
                   opacity: !winner ? 1 : name === winner ? 1 : 0.5,
                   width: 420,
+                  maxWidth: "90vw",
                   background:
                     getScore(hands[name]) > 21 ? "#fbc0c0" : "#f5f3f3",
                   margin: "0.5rem auto",
@@ -107,10 +108,10 @@ const Table = ({
                 style={{
                   height: 90,
                   display: "inline-block",
-                  width: 60,
+                  width: 56,
                   textAlign: "center",
                   fontSize: "1rem",
-                  margin: "0 0.2rem 0 0.2rem",
+                  margin: "0 0.2rem 0 0.1rem",
                   border: "1px solid #555",
                   borderRadius: "4px",
                   lineHeight: "90px",

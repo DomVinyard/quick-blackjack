@@ -30,7 +30,9 @@ const Game = () => {
   const bets = useHotState({
     watch: [cash],
     update: () =>
-      cash < 200
+      cash < 50
+        ? [1, 2, 5]
+        : cash < 200
         ? [10, 20, 50]
         : cash < 1000
         ? [50, 100, 250]

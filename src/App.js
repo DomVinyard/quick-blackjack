@@ -49,8 +49,6 @@ const Game = () => {
     setCash(100)
     newGame(10)
   }
-  // start a game on on launch
-  useEffect(() => newGame(10), [])
 
   // when a new game starts, deal the second card
   useEffect(() => {

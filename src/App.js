@@ -1,5 +1,6 @@
 // quick-blackjack
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
+import { useToasts } from "react-toast-notifications"
 
 const suits = ["♠", "♥", "♦", "♣"]
 const values = [
@@ -24,64 +25,130 @@ const Game = () => {
   const [cash, setCash] = useState(100)
   const [stake, setStake] = useState(0)
   const [deck, setDeck] = useState([])
+  const [playerStick, setPlayerStick] = useState(false)
   const [dealerStick, setDealerStick] = useState(false)
   const [winner, setWinner] = useState()
   const [hands, setHands] = useState({ player: [], dealer: [] })
   const [gameActive, setGameActive] = useState(false)
+  const { addToast } = useToasts()
 
   // shuffle the deck before every new game
-  const newGame = async bet => {
-    if (winner === "player") await setCash(cash + stake * 2) // payout from previous
-    const deck = suits.map(suit => values.map(val => [suit, val])).flat(1)
-    const shuffle = deck => deck.sort(() => 0.5 - Math.random())
-    const [card1, card2, card3, card4, ...rest] = shuffle(deck)
+  const newGame = bet => {
     setWinner(false)
-    setHands({ player: [card1, card2], dealer: [card3, card4] })
-    setDeck(rest)
     setStake(bet)
+    const newDeck = suits.map(suit => values.map(val => [suit, val])).flat(1)
+    const shuffle = deck => deck.sort(() => 0.5 - Math.random())
+    const [p, d, ...rest] = shuffle(newDeck)
+    setPlayerStick(false)
+    setDealerStick(false)
+    setHands({ player: [p], dealer: [d] })
+    setDeck(rest)
     setGameActive(true)
   }
+  // start a game on on launch
+  useEffect(() => newGame(10), [])
+
+  // when a new game starts, deal the second card
+  useEffect(() => {
+    setTimeout(() => gameActive && hitMe(), 300)
+  }, [gameActive])
 
   const wonBy = async name => {
     setGameActive(false)
     setWinner(name)
     if (name === "player") await setCash(cash + stake) // payout from previous
     if (name === "dealer") await setCash(cash - stake) // payout from previous
-    setDealerStick(false)
+    addToast(`${name === "player" ? "+" : "-"}£${stake}`, {
+      appearance: name === "player" ? "success" : "error",
+      autoDismiss: true,
+      autoDismissTimeout: 1500
+    })
   }
 
   const hitMe = () => {
+    console.log("is dealer stick", dealerStick)
     const [p, d, ...others] = deck
-    setDeck(others)
-    const newPlayerHand = [...hands.player, p]
+    const newPlayerHand = playerStick ? hands.player : [...hands.player, p]
     if (getScore(newPlayerHand) > 21) {
       setHands({ player: newPlayerHand, dealer: hands.dealer })
       return wonBy("dealer") // player went bust
     }
+    console.log(getScore(hands.dealer), dealerStickOn, playerStick)
+    if (getScore(hands.dealer) >= dealerStickOn && !playerStick) {
+      setDealerStick(true)
+      console.log("dealer stuck")
+    }
     const newDealerHand = dealerStick ? hands.dealer : [...hands.dealer, d]
-    setHands({
-      player: newPlayerHand,
-      dealer: newDealerHand
-    })
+    console.log({ newPlayerHand, newDealerHand })
+    setTimeout(
+      () =>
+        setHands({
+          player: newPlayerHand,
+          dealer: hands.dealer
+        }),
+      200
+    )
+    setTimeout(
+      () =>
+        setHands({
+          player: newPlayerHand,
+          dealer: newDealerHand
+        }),
+      300
+    )
+
     if (getScore(newDealerHand) > 21) {
       return wonBy("player") // dealer went bust
     }
-    if (getScore(newDealerHand >= dealerStickOn)) {
-      setDealerStick(true)
+    if (playerStick && getScore(newDealerHand) > getScore(newPlayerHand)) {
+      return wonBy("dealer") // player stuck, dealer got higher
     }
     if (dealerStick && getScore(newPlayerHand) > getScore(newDealerHand)) {
-      return wonBy("player") // dealer sticks, player is higher
+      return wonBy("player") // dealer stuck, player is higher
     }
     if (newPlayerHand.length >= 5) {
       return wonBy("player") // player gets 5 cards
     }
+    setDeck(others)
   }
+
+  // dealer stick if high enough
+  useEffect(() => {
+    setDealerStick(getScore(hands.dealer) >= dealerStickOn)
+  }, [hands])
+
+  // one-card player stick.
+  const stick = async () => {
+    await setPlayerStick(1)
+  }
+
+  useEffect(() => {
+    if (playerStick) {
+      setTimeout(() => {
+        if (!winner) {
+          hitMe()
+          setPlayerStick(playerStick + 1)
+        }
+      }, 300)
+    }
+  }, [playerStick])
+
+  // Calculate the score
+  const getScore = arr =>
+    !arr.filter(Boolean).length
+      ? 0
+      : arr.reduce((a, b) => a + Math.min(values.indexOf(b[1]) + 1, 10), 0)
+  const scores = {
+    player: getScore(hands.player),
+    dealer: getScore(hands.dealer)
+  }
+  const canStick = scores.player > scores.dealer && scores.player > 15
 
   const Header = () => {
     return (
       <h1 style={{ textAlign: "center" }}>
         £{cash}
-        <div>
+        <div style={{ opacity: gameActive ? 1 : 0.5 }}>
           {!gameActive &&
             bets.map(bet => (
               <button disabled={cash < bet} onClick={() => newGame(bet)}>
@@ -104,32 +171,6 @@ const Game = () => {
     )
   }
 
-  // one-card player stick.
-  const stick = async () => {
-    const [card] = deck
-    await setHands({
-      player: hands.player,
-      dealer: [...hands.dealer, card]
-    })
-    if (
-      getScore(hands.player) > getScore([...hands.dealer, card]) ||
-      getScore(hands.dealer) > 21
-    ) {
-      setWinner("player")
-    } else {
-      setWinner("dealer")
-    }
-  }
-
-  // Calculate the score
-  const getScore = arr =>
-    arr.reduce((a, b) => a + Math.min(values.indexOf(b[1]) + 1, 10), 0)
-  const scores = {
-    player: getScore(hands.player),
-    dealer: getScore(hands.dealer)
-  }
-  const canStick = scores.player > scores.dealer && scores.player > 15
-
   // render
   return (
     <div>
@@ -146,37 +187,31 @@ const Game = () => {
               <h3>
                 <span>
                   <span>{scores[name]}</span>
-                  {getScore(hands[name]) > 21 && " | BUST "}
-                  {winner === "player" &&
-                    (name === "player" && ` | WIN £${stake * 2}🎉`)}
-                  {name === "player" &&
-                    winner === "dealer" &&
-                    ` | LOSE £${stake}`}
-                  {name === "dealer" &&
-                    !winner &&
-                    getScore(hands.dealer) >= dealerStickOn &&
-                    getScore(hands.dealer) < 21 &&
-                    " | STICK"}
+                  {name === "dealer" && dealerStick && "🔒"}
+                  {name === "player" && playerStick && "🔒"}
                 </span>
               </h3>
-              {hands[name].map(card => (
-                <div
-                  style={{
-                    height: 90,
-                    display: "inline-block",
-                    width: 60,
-                    textAlign: "center",
-                    fontSize: "1rem",
-                    margin: "0 0.5rem 0 0",
-                    border: "1px solid black",
-                    borderRadius: "4px",
-                    lineHeight: "90px",
-                    background: name === "player" ? "white" : "#d4d4d4",
-                    color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
-                  }}
-                  children={card}
-                />
-              ))}
+              {hands[name].map(
+                card =>
+                  card && (
+                    <div
+                      style={{
+                        height: 90,
+                        display: "inline-block",
+                        width: 60,
+                        textAlign: "center",
+                        fontSize: "1rem",
+                        margin: "0 0.5rem 0 0",
+                        border: "1px solid black",
+                        borderRadius: "4px",
+                        lineHeight: "90px",
+                        background: name === "player" ? "white" : "#d4d4d4",
+                        color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
+                      }}
+                      children={card}
+                    />
+                  )
+              )}
             </div>
           </React.Fragment>
         ))}

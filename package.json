@@ -7,6 +7,7 @@
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
     "react-scripts": "^3.0.1",
+    "react-toast-notifications": "^2.2.5",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.88.0"
   },

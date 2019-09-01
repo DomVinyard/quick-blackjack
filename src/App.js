@@ -3,6 +3,10 @@ import React, { useState, useEffect } from "react"
 import { useToasts } from "react-toast-notifications"
 import useHotState from "./useHotState"
 import { suits, values } from "./data"
+import getScore from "./get-score-from-hand"
+import Header from "./Header"
+import useLocalStorage from "./useLocalStorage"
+import Table from "./Table"
 
 const Game = () => {
   const { addToast } = useToasts()
@@ -17,7 +21,9 @@ const Game = () => {
   const dealerStickOn = 17
 
   // create a concept of cash and a betting stake
-  const [cash, setCash] = useState(100)
+  // on first load set it to 100, after that get from
+  const [cash, setCash] = useLocalStorage("cash", 100)
+  // const [cash, setCash] = useState(100)
   const [stake, setStake] = useState(0)
 
   // when cash changes, different bets become available
@@ -98,17 +104,6 @@ const Game = () => {
       )
     }
   }, [winner])
-
-  // const draw = () => {
-  //   setGameActive(false)
-  //   setWinner("none")
-  //   if (gameActive) {
-  //     addToast("draw", {
-  //       appearance: "info",
-  //       autoDismiss: true
-  //     })
-  //   }
-  // }
 
   const hitMe = () => {
     const [p, d, ...others] = deck
@@ -194,138 +189,41 @@ const Game = () => {
     }
   }, [playerStick])
 
-  // Calculate the score
-  const getScore = arr => {
-    // all aces as 11,
-    // check if under 21
-    // if not change first ace into a 1
-    // repeat check
-    return !arr.filter(Boolean).length
-      ? 0
-      : arr.reduce((a, b) => a + Math.min(values.indexOf(b[1]) + 1, 10), 0)
-  }
   const scores = {
     player: getScore(hands.player),
     dealer: getScore(hands.dealer)
   }
   const canStick = scores.player > scores.dealer && scores.player > 15
-
-  // Title and actions
-  const Header = () => {
-    return (
-      <div style={{ textAlign: "center", marginTop: 92 }}>
-        <h1>£{cash}</h1>
-        <div>
-          {cash > 0 &&
-            !gameActive &&
-            bets.map(bet => (
-              <button disabled={cash < bet} onClick={() => newGame(bet)}>
-                {`bet £${bet}`}
-              </button>
-            ))}
-          {cash <= 0 && <button onClick={reset}>new game</button>}
-        </div>
-        {gameActive && (
-          <div>
-            <span style={{ color: "firebrick", marginRight: 8 }}>£{stake}</span>
-            <button
-              style={{ width: 90 }}
-              disabled={winner}
-              onClick={() => hitMe()}
-              children="hit me"
-            />
-            <button disabled={!canStick} onClick={stick} children="stick" />
-          </div>
-        )}
-      </div>
-    )
-  }
-
   // Card container
   return (
     <div>
-      <Header gameActive={gameActive} />
-      <div style={{ marginTop: "2rem" }}>
-        {["player", "dealer"].map(name => (
-          <React.Fragment>
-            <div
-              style={
-                hands.player.length
-                  ? {
-                      textAlign: "center",
-                      opacity: !winner ? 1 : name === winner ? 1 : 0.5,
-                      width: 420,
-                      background:
-                        getScore(hands[name]) > 21 ? "#fbc0c0" : "#f5f3f3",
-                      margin: "0.5rem auto",
-                      padding: "0.5rem 0 1rem 0",
-                      borderRadius: 16
-                    }
-                  : { width: 420, margin: "0.5rem auto" }
-              }
-            >
-              <h3
-                style={{
-                  margin: "2px 0 8px 0",
-                  color: name === "dealer" ? "#737373" : "#222"
-                }}
-              >
-                <span>
-                  <span style={{ fontWeight: "normal", opacity: 0.5 }}></span>
-                  <span>{scores[name] > 0 ? scores[name] : ""}</span>
-                  {winner === name ? (
-                    " ✅"
-                  ) : (
-                    <span>
-                      {name === "dealer" && dealerStick && !playerStick && "🔒"}
-                      {name === "player" && playerStick && "🔒"}
-                    </span>
-                  )}
-                </span>
-              </h3>
-              {hands[name].map(card =>
-                !card ? (
-                  ""
-                ) : (
-                  <div
-                    onClick={() => {
-                      if (gameActive && card[1] === "Q") {
-                        setHands({ player: [], dealer: [] })
-                        setCash((cash || 0) + bets[0])
-                        addToast(
-                          <div>
-                            <div>+£{bets[0]}</div>
-                            <div>the queen gave you £{bets[0]}</div>
-                          </div>,
-                          {
-                            appearance: "success",
-                            autoDismiss: true
-                          }
-                        )
-                        setGameActive(false)
-                      }
-                    }}
-                    style={{
-                      height: 90,
-                      display: "inline-block",
-                      width: 60,
-                      textAlign: "center",
-                      fontSize: "1rem",
-                      margin: "0 0.2rem 0 0.2rem",
-                      border: "1px solid #555",
-                      borderRadius: "4px",
-                      lineHeight: "90px",
-                      background: name === "player" ? "white" : "#d4d4d4",
-                      color: ["♥", "♦"].includes(card[0]) ? "red" : "black"
-                    }}
-                    children={card}
-                  />
-                )
-              )}
-            </div>
-          </React.Fragment>
-        ))}
-      </div>
+      <Header
+        cash={cash}
+        gameActive={gameActive}
+        bets={bets}
+        newGame={newGame}
+        reset={reset}
+        stake={stake}
+        winner={winner}
+        hitMe={hitMe}
+        stick={stick}
+        canStick={canStick}
+      />
+      <Table
+        hands={hands}
+        winner={winner}
+        getScore={getScore}
+        scores={scores}
+        dealerStick={dealerStick}
+        playerStick={playerStick}
+        gameActive={gameActive}
+        setHands={setHands}
+        setCash={setCash}
+        cash={cash}
+        bets={bets}
+        addToast={addToast}
+        setGameActive={setGameActive}
+      />
     </div>
   )
 }

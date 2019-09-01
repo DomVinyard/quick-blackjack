@@ -168,10 +168,15 @@ const Game = () => {
   }, [playerStick])
 
   // Calculate the score
-  const getScore = arr =>
-    !arr.filter(Boolean).length
+  const getScore = arr => {
+    // all aces as 11,
+    // check if under 21
+    // if not change first ace into a 1
+    // repeat check
+    return !arr.filter(Boolean).length
       ? 0
       : arr.reduce((a, b) => a + Math.min(values.indexOf(b[1]) + 1, 10), 0)
+  }
   const scores = {
     player: getScore(hands.player),
     dealer: getScore(hands.dealer)

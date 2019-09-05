@@ -139,8 +139,9 @@ const Table = ({
         </React.Fragment>
       ))}
       {gameActive && (
-        <div style={{ textAlign: "right", color: "#acacac" }}>
-          game {betCount}
+        <div>
+          <span style={{ opacity: 0.25 }}>click queen to auto-win</span>
+          <span style={{ float: "right", opacity: 0.5 }}>game {betCount}</span>
         </div>
       )}
     </div>
